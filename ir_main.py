@@ -1,28 +1,35 @@
 #!/usr/bin/env python
+
+#
+# Author: Tran Thuan - 166005004
+# Project: Information Retrieval
+# TDT University - Information Retrieval course
+# Lecturer: Le Anh Cuong
+#
 import os,sys
-import stokenize #Phi
-import indexing #Hieu
-import searching #Thuan
-import correction #aDai + Thanh
+from stokenize import stokenize #Author: Phi
+from indexing import inverted_index #Author: Hieu
+from searching import simple_search #Author: Thuan
+from correction import correction #Author: aDai + Thanh
 
 def main():
     ids = []
     print("Information Retrieval")
-    if os.path.exists("vob.npy") and os.path.exists("data.npy"):
-        #Load indexed data
-        while(1):
-            text = raw_input("Search what: ")
-            text = correction(text)
-            for w in stokenize(text):
-                ids.append(hashing(w))
-            print(searching(ids))
-    else:
-        #Indexing data: vob.npy + data.npy
-        indexing(collections="collections")
+    indexed_data = inverted_index.indexing(collections="collections")
+    print indexed_data
+    while(1):
+        #text = raw_input("Search what: ")
+        #text = correction(text)
+        #for w in stokenize(text):
+        #    ids.append(hashing(w))
+        ids = [1,2]
+        print(simple_search.search(ids,indexed_data))
+        sys.exit(0)
 
 
 #For run python from html
 #https://stackoverflow.com/questions/42262366/how-to-run-a-python-script-from-html
+#http://pwp.stevecassidy.net/bottle/forms-processing.html
 from flask import Flask, render_template
 
 app = Flask(__name__)
@@ -30,12 +37,12 @@ app = Flask(__name__)
 @app.route('/html')
 def index():
     # render your html template
-    return render_template('example.html')
+    return render_template('index.html')
 
 @app.route('/')
-def click():
-    print("Do searching")
-    #search()
+def formhandler():
+    print("Result")
+    print(simple_search.search(ids,indexed_data))
 
 if __name__ == '__main__':
     if len(sys.argv) == 2 and sys.argv[1] == "server":

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #
-# Author: Tran Thuan - 166005004
+# Author: Thuan, Hieu, Thanh, Phi, Dai, Thuy
 # Project: Information Retrieval
 # TDT University - Information Retrieval course
 # Lecturer: Le Anh Cuong
@@ -12,40 +12,60 @@ from indexing import inverted_index #Author: Hieu
 from searching import simple_search #Author: Thuan
 from correction import correction #Author: aDai + Thanh
 
+indexed_data = {}
+
 def main():
     ids = []
     print("Information Retrieval")
     indexed_data = inverted_index.indexing(collections="collections")
     print indexed_data
     while(1):
-        #text = raw_input("Search what: ")
+        text = raw_input("Search what: ")
         #text = correction(text)
-        #for w in stokenize(text):
-        #    ids.append(hashing(w))
-        ids = [1,2]
-        print(simple_search.search(ids,indexed_data))
-        sys.exit(0)
+        for w in stokenize.stokenize(text):
+            ids.append(inverted_index.hashing(w))
+        print(">>> Result: %s"%simple_search.search(ids,indexed_data))
 
 
 #For run python from html
-#https://stackoverflow.com/questions/42262366/how-to-run-a-python-script-from-html
-#http://pwp.stevecassidy.net/bottle/forms-processing.html
-from flask import Flask, render_template
+#https://www.tutorialspoint.com/flask/flask_http_methods.htm
+from flask import Flask, render_template, request, redirect, url_for
+import webbrowser as wb
 
 app = Flask(__name__)
 
-@app.route('/html')
-def index():
-    # render your html template
-    return render_template('index.html')
+@app.route('/search_result/<input>')
+def search_result(input):
+    global indexed_data
+    ids = []
+    for w in stokenize.stokenize(input):
+        ids.append(inverted_index.hashing(w))
+    result = "Result:"+"<br>"
+    for i in simple_search.search(ids,indexed_data):
+        print(i)
+        result = result+str(i)+"<br>"
+    return result
+
+@app.route('/search',methods = ['POST', 'GET'])
+def search():
+    if request.method == 'POST':
+        text = request.form['input']
+        return redirect(url_for('search_result',input = text))
+    else:
+        text = request.args.get('input')
+        return redirect(url_for('search_result',input = text))
 
 @app.route('/')
-def formhandler():
-    print("Result")
-    print(simple_search.search(ids,indexed_data))
+def index():
+   return render_template('index.html')
+
 
 if __name__ == '__main__':
+    #For test with browser: ./ir_main.py server
     if len(sys.argv) == 2 and sys.argv[1] == "server":
-        app.run()
+        indexed_data = inverted_index.indexing(collections="collections")
+        wb.open("http://127.0.0.1:5000/")
+        app.run(debug = True)
     else:
+        #For test with console: ./ir_main.py
         main()

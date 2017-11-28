@@ -7,24 +7,26 @@
 # Lecturer: Le Anh Cuong
 #
 import os,sys
+import numpy as np
 from stokenize import stokenize #Author: Phi
 from indexing import inverted_index #Author: Hieu
 from searching import simple_search #Author: Thuan
 from correction import correction #Author: aDai + Thanh
 
-indexed_data = {}
-
 def main():
     ids = []
     print("Information Retrieval")
-    indexed_data = inverted_index.indexing(collections="collections")
-    print indexed_data
+    if not os.path.exists('index.npy'):
+        indexed_data = simple_search.indexing('/home/tdt/MaxEnt_POS/Trainset/')
+        np.save('index.npy',indexed_data)
+    else:
+        indexed_data = np.load('index.npy').item()
     while(1):
         text = raw_input("Search what: ")
         #text = correction(text)
-        for w in stokenize.stokenize(text):
-            ids.append(inverted_index.hashing(w))
-        print(">>> Result: %s"%simple_search.search(ids,indexed_data))
+        #for w in stokenize.stokenize(text):
+        #    ids.append(inverted_index.hashing(w))
+        print(">>> Result: %s"%simple_search.search(text,indexed_data))
 
 
 #For run python from html
@@ -63,7 +65,11 @@ def index():
 if __name__ == '__main__':
     #For test with browser: ./ir_main.py server
     if len(sys.argv) == 2 and sys.argv[1] == "server":
-        indexed_data = inverted_index.indexing(collections="collections")
+        if not os.path.exists('index.npy'):
+            iindexed_data = indexing('/home/tdt/MaxEnt_POS/Trainset/')
+            np.save('index.npy',indexed_data)
+        else:
+            indexed_data = np.load('index.npy').item()
         wb.open("http://127.0.0.1:5000/")
         app.run(debug = True)
     else:

@@ -7,6 +7,8 @@
 # Lecturer: Le Anh Cuong
 #
 
+import nltk
+
 example_vob = ["hello","world"]
 
 def build_vocabulary(collections):
@@ -16,7 +18,8 @@ def build_vocabulary(collections):
 
 def stokenize(sentence):
     #Not need change this function now
-    return sentence.split()
+	
+    return nltk.word_tokenize(sentence)
 
 
 if __name__ == '__main__':

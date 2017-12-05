@@ -33,7 +33,7 @@ def indexing_basic(collections):
 		lines = open(f).readlines()
 		f = os.path.basename(f)
 		for line in lines:
-			words = stokenize.stokenize(line)
+			words = stokenize.stokenize_stop(line)
 			for w in words:
 				if indexed_data.has_key(w):
 					indexed_data[w].add(f)
@@ -48,12 +48,14 @@ def indexing_TF_IDF(collections):
 	indexed_data = {}
 	indexTF = 0
 	indexIDF = 1
+	countDoc = 0
 	files = [os.path.join(collections,f) for f in os.listdir(collections)]
 	for f in files:
 		lines = open(f).readlines()
 		f = os.path.basename(f)
+		N = N + 1
 		for line in lines:
-			words = stokenize.stokenize(line)
+			words = stokenize.stokenize_stop(line)
 			for w in words:
 				if w in indexed_data:
 					indexed_data[w][indexIDF].add(f)
@@ -68,7 +70,7 @@ def indexing_TF_IDF(collections):
 					indexed_data[w][indexTF][f] = 1
 					indexed_data[w][indexIDF] = set([f])
 					vocabulary.add(w)
-	return indexed_data
+	return N,indexed_data
 
 
 if __name__ == '__main__':

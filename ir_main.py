@@ -17,7 +17,7 @@ def main():
     ids = []
     print("Information Retrieval")
     if not os.path.exists('index.npy'):
-        indexed_data = simple_search.indexing('/home/tdt/MaxEnt_POS/Trainset/')
+        indexed_data = inverted_index.indexing_basic('/home/tdt/MaxEnt_POS/Trainset/')
         np.save('index.npy',indexed_data)
     else:
         indexed_data = np.load('index.npy').item()

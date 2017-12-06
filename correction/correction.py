@@ -18,5 +18,5 @@ def correction(input):
 if __name__ == '__main__':
     #For test: ./correction.py
     while(1):
-        sentence = raw_input("Input a word: ")
-        print(correction(sentence))
+        w = raw_input("Input one word: ")
+        print("Corrected: %s"%correction(w.lower()))

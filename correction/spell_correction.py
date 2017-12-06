@@ -4,12 +4,18 @@ import numpy as np
 import re
 from collections import Counter
 
+#Get current directory path which have this script
+dir_path = os.path.dirname(os.path.realpath(__file__))
+data_file = os.path.join(dir_path,'big.txt')
+save_file = os.path.join(dir_path,'words.npy')
+
 def words(text): return re.findall(r'\w+', text.lower())
-if not os.path.exists('words.npy'):
-    WORDS = Counter(words(open('big.txt').read()))
-    np.save('words.npy',WORDS)
+
+if not os.path.exists(save_file):
+    WORDS = Counter(words(open(data_file).read()))
+    np.save(save_file,WORDS)
 else:
-    WORDS = np.load('words.npy').item()
+    WORDS = np.load(save_file).item()
 
 def P(word, N=sum(WORDS.values())): 
     "Probability of `word`."
@@ -17,7 +23,6 @@ def P(word, N=sum(WORDS.values())):
 
 def correction(word): 
     "Most probable spelling correction for word."
-    print("word=%s",word)
     return max(candidates(word), key=P)
 
 def candidates(word): 

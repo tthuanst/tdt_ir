@@ -13,6 +13,7 @@ from indexing import inverted_index #Author: Hieu + Dai
 from searching import searching #Author: Thuan
 from correction import correction #Author: Phi + Thuy
 
+mode = ""
 indexed_data = {}
 #For run python from html
 #https://www.tutorialspoint.com/flask/flask_http_methods.htm
@@ -23,11 +24,16 @@ app = Flask(__name__)
 
 @app.route('/search_result/<input>')
 def search_result(input):
-    global indexed_data
+    global mode,indexed_data
     result = "Result:"+"<br>"
-    for i in searching.simple_search(stokenize.stokenize_stop(input),indexed_data):
-        print(i)
-        result = result+str(i)+"<br>"
+    if mode == "basic":
+        for i in searching.simple_search(stokenize.stokenize_stop(input),indexed_data):
+            print(i)
+            result = result+str(i)+"<br>"
+    elif mode == "rank":
+        for i in searching.rank_search(stokenize.stokenize_stop(input),indexed_data):
+            print(i)
+            result = result+str(i)+"<br>"
     return result
 
 @app.route('/search',methods = ['POST', 'GET'])
@@ -80,21 +86,26 @@ if __name__ == '__main__':
     print(data_path)
     if mode == "basic":
         if not os.path.exists('simple_index.npy'):
+            #indexed_data = searching.indexing(data_path)
+            #np.save('simple_index.npy',indexed_data)
             indexed_data = inverted_index.indexing_basic(data_path)
             np.save('simple_index.npy',indexed_data)
         else:
             indexed_data = np.load('simple_index.npy').item()
     elif mode == "rank":
         if not os.path.exists('rank_index.npy'):
-            indexed_data = inverted_index.indexing_TF_IDF(data_path)
+            #indexed_data = inverted_index.indexing_TF_IDF(data_path)
+            #np.save('rank_index.npy',indexed_data)
+            indexed_data = searching.indexing_2(data_path)
             np.save('rank_index.npy',indexed_data)
         else:
             indexed_data = np.load('rank_index.npy').item()
     else:
         print("Incorrect mode!")
+        sys.exit(1)
 
-    if gui == "server":
-        #For test with browser: ./ir_main.py <mode> server
+    if gui == "web":
+        #For test with browser: ./ir_main.py <mode> web
         #wb.open("http://127.0.0.1:5000/")
         app.run(debug = True)
     elif gui == "console":
@@ -102,3 +113,4 @@ if __name__ == '__main__':
         console(mode)
     else:
         print("Incorrect GUI!")
+        sys.exit(1)

@@ -26,7 +26,7 @@ app = Flask(__name__)
 def search_result(input):
     global mode,indexed_data
     result = "Result:"+"<br>"
-    if mode == "basic":
+    if mode == "simple":
         for i in searching.simple_search(stokenize.stokenize_stop(input),indexed_data):
             print(i)
             result = result+str(i)+"<br>"
@@ -59,32 +59,31 @@ def console(mode):
             query.append(w)
         if len(query) == 0:
             print("No meaning word to search")
-        elif mode == "basic":
+        elif mode == "simple":
             print(">>> Result: %s"%searching.simple_search(query,indexed_data))
         elif mode == "rank":
             print(">>> Result: %s"%searching.rank_search(query,indexed_data))
 
 
 if __name__ == '__main__':
-    try:
+    if len(sys.argv) == 1:
+        mode = raw_input("Simple search or Rank search. Enter simple/rank: ")
+        gui = raw_input("Console or Webbrowser. Enter console/web: ")
+    elif len(sys.argv) == 3:
         #First argument for mode selection
         mode = sys.argv[1]
-    except:
-        #Default mode is basic
-        mode = "basic"
-    try:
         #Second argument for GUI selection
         gui = sys.argv[2]
-    except:
-        #Default GUI is console
-        gui = "console"
+    else:
+        print("Usage: %s or %s <mode> <gui>"%(sys.argv[0],sys.argv[0]))
+        sys.exit(1)
 
     print("Information Retrieval mode=%s, app=%s"%(mode,app))
     #Get current directory path which have this script
     dir_path = os.path.dirname(os.path.realpath(__file__))
     data_path = os.path.join(dir_path,"collections/ohsumed-all-docs")
     print(data_path)
-    if mode == "basic":
+    if mode == "simple":
         if not os.path.exists('simple_index.npy'):
             #indexed_data = searching.indexing(data_path)
             #np.save('simple_index.npy',indexed_data)

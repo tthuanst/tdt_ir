@@ -7,9 +7,9 @@
 # Lecturer: Le Anh Cuong
 #
 
-import nltk
-nltk.download('stopwords')
-nltk.download('punkt')
+import nltk #Install: pip install nltk
+#nltk.download('stopwords') #Need download once
+#nltk.download('punkt') #Need download once
 from nltk.corpus import stopwords
 from nltk.tokenize import wordpunct_tokenize
 

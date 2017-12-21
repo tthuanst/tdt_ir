@@ -9,6 +9,7 @@
 import os,sys
 import subprocess
 import numpy as np
+from collections import Counter
 from datetime import datetime
 from stokenize import stokenize #Author: Thanh
 from indexing import inverted_index #Author: Hieu + Dai
@@ -35,25 +36,35 @@ def display_result(input,searchMode):
         query.append(w)
         pattern = pattern+w+"|"
     pattern = pattern[:-1]+")\" "
-    #Show corrected sentences which is used to search
-    result = "Result simple search for <i><font color=\"red\">"+" ".join(query)+"</font></i><br><br>"
     #Searching follow searchMode
+    time_start = datetime.now()
     if searchMode == "simple":
         docs = searching.simple_search(query,indexed_simple)
     elif searchMode == "rank":
         docs = searching.rank_search(query,indexed_rank)
-    #For each document, show hyperlink to it and show a part of document
-    #TODO: hyperlink to local file cannot click to open
-    #Copy link and paste to address bar of browswer to open
-    for d in docs:
+    #Show corrected sentences which is used to search
+    result = "Result simple search for <b><i><font color=\"red\">"+" ".join(query)+"</font></i></b><br>"
+    #Show time searching and number of document found
+    if "Not found" not in docs:
+        found = len(docs)
+    else:
+        found = 0
+    result = result+"Found {0} documents in {1} <br>".format(found,datetime.now()-time_start)
+    #Get top 10 highest score
+    score = Counter(docs)
+    for d in score.most_common(10): #Only show top 10 document
+        #For each document, show hyperlink to it and show a part of document
+        #TODO: hyperlink to local file cannot click to open
+        #Copy link and paste to address bar of browswer to open
         if type(d) is tuple:
             d = d[0]
         if os.path.exists(os.path.join(data_path,d)):
-            count = count + 1
             result = result + "<br><a href=\"file:///{0}/{1}\" target=\"_blank\">{1}</a><br>".format(data_path,d)
             cmd = "/bin/egrep -m 3 -i "+str(pattern)+str(os.path.join(data_path,d))
             out = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-            out.replace('\n','<br>')
+            out = out.replace('\n','<br>')
+            for w in query:
+                out = out.replace(w,"<b>"+w+"</b>")
             result = result+out+"<br>"
         else:
             result = result+"<br>"+"<b>"+d+"</b><br>"
@@ -102,11 +113,28 @@ def console():
         else:
             #Print corrected sentence then search result
             print("Searching \"%s\" ..."%(" ".join(query)))
+            time_start = datetime.now()
+            docs = searching.simple_search(query,indexed_simple)
+            #Show time searching and number of document found
+            if "Not found" not in docs:
+                found = len(docs)
+            else:
+                found = 0
             print(">>> Result simple:")
-            print(searching.simple_search(query,indexed_simple))
+            print(">>> Found {0} documents in {1}".format(found,datetime.now()-time_start))
+            print(docs)
+            time_start = datetime.now()
+            docs = searching.rank_search(query,indexed_rank)
+            #Show time searching and number of document found
+            if "Not found" not in docs:
+                found = len(docs)
+            else:
+                found = 0
             print(">>> Result rank:")
+            print(">>> Found {0} documents in {1}".format(found,datetime.now()-time_start))
+            result = Counter(docs)
             count = 0
-            for d in searching.rank_search(query,indexed_rank):
+            for d in result.most_common(100): #Get top 100 document highest rank
                 print(d)
                 count = count + 1
                 if count%10 == 0:

@@ -9,7 +9,6 @@
 
 import os,re,math
 from stokenize import stokenize
-from collections import Counter
 
 def indexing(collections,indexed_data): #First draft in case of Hieu not yet done
     #Do indexing ...
@@ -85,9 +84,7 @@ def rank_search(query,indexed_data):
                 else:
                     score[d] = weight
     if len(score) != 0:
-        #Get top 100 highest score
-        result = Counter(score)
-        return result.most_common(100)
+        return score
     else:
         #For pretty printout
         return set(["Not found"])

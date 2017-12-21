@@ -1,0 +1,42 @@
+This is a project for course "Information Retrieval" of Ton Duc Thang university
+Lecturer: Le Anh Cuong
+Authors: Thuan, Hieu, Thanh, Phi, Dai, Thuy
+
+Run main program without parameter you will see menu
+For example: ./ir_main.py
+      Usage: ./ir_main.py search [console](optional)
+      Usage: ./ir_main.py index
+      Note: indexing new files in collections to update if database exists
+      Note: indexing all files in collections to update if database not exists
+
+The indexed data (database) is stored as 2 files: simple_index.npy and rank_index.npy
+
+
+STRUCTURE
+
+tdt_ir
+|
+|- README       : this file
+|
+|- ir_main.py   : main program
+|
+|- collections  : document collections
+|
+|- correction   : spelling correction module
+|      |- spell_correction.py  : refer code from http://norvig.com/spell-correct.html
+|      |- correction.py        : use spell_correction to correct one word input
+|      |- big.txt			   : input data for spell_correction.py, output is stored as words.npy
+|
+|- indexing     : document indexing module
+|      |- inverted_index.py    : index simple/rank/boolean (boolean is not use in main program)
+|
+|- searching    : searching module
+|      |- searching.py         : simple search and rank search
+|                                index simple/rank (if indexing module not ready)
+|
+|- stokenize    : stokenize module
+|      |- stokenize.py          : stokenize using nltk
+|
+|- templates    : template web GUI for searching
+      |- index.html            : web GUI for searching
+

@@ -7,7 +7,7 @@
 # Lecturer: Le Anh Cuong
 #
 
-from stokenize import stokenize
+#from stokenize import stokenize
 import os,re
 
 def indexing_basic(collections):
@@ -54,8 +54,37 @@ def indexing_TF_IDF(collections):
                     indexed_data[w][indexIDF] = set([f])
     return N,indexed_data
 
+def indexing_boolean(collections):
+    #Do indexing ...
+    indexed_data = {}   # key+value
+    indexed_data['__doc_list__'] = []  #list
+    files = [os.path.join(collections,f) for f in os.listdir(collections)]
+    for f in files:
+        f = os.path.basename(f)
+        indexed_data['__doc_list__'].append(f)
+    for f in files:
+        lines = open(f).readlines()
+        f = os.path.basename(f)
+        for line in lines:
+            #words = stokenize.stokenize_stop(line)
+            for w in line.split():
+                if not indexed_data.has_key(w):
+                    indexed_data[w] = []
+                    for d in indexed_data['__doc_list__']:
+                        if d == f:
+                            indexed_data[w].append(True)
+                        else:
+                            indexed_data[w].append(False)
+                else:
+                    indexed_data[w][indexed_data['__doc_list__'].index(f)] = True
+    return indexed_data
+
+
 
 if __name__ == '__main__':
-    #For test: ./inverted_index.py
-    dict_data = indexing_basic("../collections")
-    print(dict_data["hello"])
+    dict_data = indexing_boolean("/home/thanh/Desktop/tdt_ir/collections/ohsumed-all-docs")
+    #print(dict_data['hyperbaric'])
+    for i in range(len(dict_data['__doc_list__'])):
+        if dict_data['hyperbaric'][i] and dict_data['oxygen'][i]:
+            print(dict_data['__doc_list__'][i])
+    #print(dict_data["hello"])

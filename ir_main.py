@@ -60,7 +60,7 @@ def display_result(input,searchMode):
             d = d[0]
         if os.path.exists(os.path.join(data_path,d)):
             result = result + "<br><a href=\"file:///{0}/{1}\" target=\"_blank\">{1}</a><br>".format(data_path,d)
-            cmd = "/bin/egrep -m 3 -i "+str(pattern)+str(os.path.join(data_path,d))
+            cmd = "/bin/egrep -m 3 -i "+str(pattern)+"\""+str(os.path.join(data_path,d))+"\""
             out = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
             out = out.replace('\n','<br>')
             for w in query:

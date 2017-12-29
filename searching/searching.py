@@ -28,8 +28,9 @@ def indexing(collections,indexed_data): #First draft in case of Hieu not yet don
         indexed_data['__countDoc__'].append(f)
         count2 = count2 + 1
         for line in lines:
-            for w in line.split(): #Simple stokenize, split by space
-                w = re.sub(r'/.*','',w) #This is for remove tag if use POS tagging data
+            #for w in line.split(): #Simple stokenize, split by space
+            for w in stokenize.stokenize_stop(line):
+                #w = re.sub(r'/.*','',w) #This is for remove tag if use POS tagging data
                 #vocabulary.add(w) #Build vocabulary, but it's not used
                 if indexed_data.has_key(w):
                     #Add document name to posting list of dictionary term 'w'

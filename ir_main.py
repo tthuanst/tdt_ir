@@ -99,7 +99,7 @@ def index():
 #################################################
 def console():
     #Console mode (to debug) can load 10 result per time
-    global indexed_simple,indexed_rank
+    global indexed_simple,indexed_rank,indexed_position
     while(1):
         query = []
         text = raw_input("Search what: ")
@@ -140,6 +140,16 @@ def console():
                 if count%10 == 0:
                     #To show only 10 result per time
                     raw_input("Enter to load more")
+            time_start = datetime.now()
+            docs = searching.phrase_search(query,indexed_position)
+            #Show time searching and number of document found
+            if "Not found" not in docs:
+                found = len(docs)
+            else:
+                found = 0
+            print(">>> Result phrase:")
+            print(">>> Found {0} documents in {1}".format(found,datetime.now()-time_start))
+            print(docs)
 
 #Print usage of this program
 def usage():
@@ -161,11 +171,12 @@ if __name__ == '__main__':
         data_path = os.path.join(dir_path,"collections/ohsumed-all-docs")
         if sys.argv[1] == "search":
             #No index database, return error. If exist, load it to global vars
-            if not (os.path.exists('simple_index.npy') and os.path.exists('rank_index.npy')):
+            if not (os.path.exists('simple_index.npy') and os.path.exists('rank_index.npy') and os.path.exists('position_index.npy')):
                 error("No indexing database")
             else:
                 indexed_simple = np.load('simple_index.npy').item()
                 indexed_rank = np.load('rank_index.npy').item()
+                indexed_position = np.load('position_index.npy').item()
             if len(sys.argv) == 3 and sys.argv[2] == "console":
                 #For test with console: ./ir_main.py search console
                 console()
@@ -196,6 +207,15 @@ if __name__ == '__main__':
             indexed_rank = searching.indexing_2(data_path,indexed_rank)
             np.save('rank_index.npy',indexed_rank)
             print("   ==> Rank indexing ... DONE {0}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            try:
+                indexed_position = np.load('position_index.npy').item()
+                print("   ==> Position indexing ... updating {0}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            except:
+                indexed_position = {}
+                print("   ==> Position indexing ... start {0}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            indexed_position = searching.indexing_position(data_path,indexed_position)
+            np.save('position_index.npy',indexed_position)
+            print("   ==> Position indexing ... DONE {0}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         else:
             raise IndexError
     except IndexError:

@@ -70,6 +70,39 @@ def indexing_2(collections,indexed_data):
     print("\tSkip %d files already indexed, index %d new files"%(count1,count2))
     return indexed_data
 
+def indexing_position(collections,indexed_data):
+    #Do indexing ...
+	countIndexed = 0
+	countIngdexing = 0
+	indexWordInDoc = 0
+	if '__countDoc__' not in indexed_data.keys():
+		indexed_data['__countDoc__'] = []
+	files = [os.path.join(collections,f) for f in os.listdir(collections)]
+	for f in files:
+		indexWordInDoc = 0
+		lines = open(f).readlines()
+		f = os.path.basename(f)
+		if f in indexed_data['__countDoc__']:
+			countIndexed = countIndexed + 1
+			continue #Skip document already indexed
+			indexed_data['__countDoc__'].append(f)
+		countIngdexing = countIngdexing + 1
+		for line in lines:
+			for w in stokenize.stokenize_stop(line):
+				indexWordInDoc = indexWordInDoc + 1
+				if indexed_data.has_key(w):
+                    #Count term w in document f
+					if not indexed_data[w].has_key(f):
+						indexed_data[w][f] = []
+					indexed_data[w][f].append(indexWordInDoc)
+				else:
+					#Create dict with key(f) for term w
+					indexed_data[w] = dict()
+					indexed_data[w][f] = []
+					indexed_data[w][f].append(indexWordInDoc)
+	print("\tSkip %d files already indexed, index %d new files"%(countIndexed,countIngdexing))
+	return indexed_data
+
 def rank_search(query,indexed_data):
     score = {}
     for t in query:
@@ -106,6 +139,37 @@ def simple_search(query,indexed_data):
         #Set of doc names satisfy all terms of query
         return result
 
+def phrase_search(query, indexed_data):
+    result = set()
+    candidates = set()
+    candidatesTemp = set()
+    for term in query:
+        if indexed_data.has_key(term):
+            if candidates is None or len(candidates) == 0:
+                for doc in indexed_data[term]:
+                    candidates.add(doc)
+            else:
+                candidatesTemp = set()
+                for doc in indexed_data[term]:
+                    candidatesTemp.add(doc)
+                candidates = candidates & candidatesTemp
+    if candidates is None or len(candidates) == 0:
+        #For pretty printout
+        return set(["Not found"])
+    if len(query) > 1:
+        for doc in candidates:
+            for position in indexed_data[query[0]][doc]:
+                for i in range(1, len(query)):
+                    if not (position + i) in indexed_data[query[i]][doc] :
+                        break
+                    result.add(doc)
+    else:
+        result = candidates
+    if len(result) != 0:
+        return result
+    else:
+        #For pretty printout
+        return set(["Not found"])
 
 if __name__ == '__main__':
     print("Test done by ir_main.py")

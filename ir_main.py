@@ -19,6 +19,7 @@ from correction import correction #Author: Phi + Thuy
 data_path = ""
 indexed_simple = {}
 indexed_rank = {}
+indexed_position = {}
 #For run python from html
 #https://www.tutorialspoint.com/flask/flask_http_methods.htm
 from flask import Flask, render_template, request, redirect, url_for
@@ -27,7 +28,7 @@ import webbrowser as wb
 app = Flask(__name__)
 
 def display_result(input,searchMode):
-    global data_path,indexed_simple,indexed_rank
+    global data_path,indexed_simple,indexed_rank,indexed_position
     #Pattern for egrep to show a part of document
     pattern = "\"("
     query = []
@@ -42,6 +43,8 @@ def display_result(input,searchMode):
         docs = searching.simple_search(query,indexed_simple)
     elif searchMode == "rank":
         docs = searching.rank_search(query,indexed_rank)
+    elif searchMode == "phrase":
+        docs = searching.phrase_search(query,indexed_position)
     #Show corrected sentences which is used to search
     result = "Result simple search for <b><i><font color=\"red\">"+" ".join(query)+"</font></i></b><br>"
     #Show time searching and number of document found
@@ -78,6 +81,10 @@ def search_simple(input):
 def search_rank(input):
     return display_result(input,"rank")
 
+@app.route('/search_phrase/<input>')
+def search_phrase(input):
+    return display_result(input,"phrase")
+
 @app.route('/search',methods = ['POST'])
 def search():
     if request.form['submit'] == "Simple search":
@@ -90,6 +97,11 @@ def search():
         text = request.form['input']
         print("Rank search: %s"%text)
         return redirect(url_for('search_rank',input = text))
+    if request.form['submit'] == "Phrase search":
+        #Handle rank search button
+        text = request.form['input']
+        print("Phrase search: %s"%text)
+        return redirect(url_for('search_phrase',input = text))
 
 @app.route('/')
 def index():

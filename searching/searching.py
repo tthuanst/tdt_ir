@@ -28,8 +28,8 @@ def indexing(collections,indexed_data): #First draft in case of Hieu not yet don
         indexed_data['__countDoc__'].append(f)
         count2 = count2 + 1
         for line in lines:
-            #for w in line.split(): #Simple stokenize, split by space
-            for w in stokenize.stokenize_stop(line):
+            #for w in stokenize.stokenize_stop(line):
+            for w in line.split():
                 #w = re.sub(r'/.*','',w) #This is for remove tag if use POS tagging data
                 #vocabulary.add(w) #Build vocabulary, but it's not used
                 if indexed_data.has_key(w):
@@ -46,18 +46,20 @@ def indexing_2(collections,indexed_data):
     count1 = 0
     count2 = 0
     if '__countDoc__' not in indexed_data.keys():
-        indexed_data['__countDoc__'] = []
+        indexed_data['__countDoc__'] = {}
     files = [os.path.join(collections,f) for f in os.listdir(collections)]
     for f in files:
         lines = open(f).readlines()
         f = os.path.basename(f)
-        if f in indexed_data['__countDoc__']:
+        if f in indexed_data['__countDoc__'].keys():
             count1 = count1 + 1
             continue #Skip document already indexed
-        indexed_data['__countDoc__'].append(f)
+        indexed_data['__countDoc__'][f] = 0
         count2 = count2 + 1
         for line in lines:
-            for w in stokenize.stokenize_stop(line):
+            #for w in stokenize.stokenize_stop(line):
+            for w in line.split():
+                indexed_data['__countDoc__'][f] = indexed_data['__countDoc__'][f]+1
                 if indexed_data.has_key(w):
                     #Count term w in document f
                     if indexed_data[w].has_key(f):
@@ -71,38 +73,45 @@ def indexing_2(collections,indexed_data):
     print("\tSkip %d files already indexed, index %d new files"%(count1,count2))
     return indexed_data
 
+def vsm_search(query,indexed_data):
+    score = rank_search(query,indexed_data)
+    for d in score.keys():
+        score[d] = score[d]/math.sqrt(indexed_data['__countDoc__'][d])
+    return score
+
 def indexing_position(collections,indexed_data):
     #Do indexing ...
-	countIndexed = 0
-	countIngdexing = 0
-	indexWordInDoc = 0
-	if '__countDoc__' not in indexed_data.keys():
-		indexed_data['__countDoc__'] = []
-	files = [os.path.join(collections,f) for f in os.listdir(collections)]
-	for f in files:
-		indexWordInDoc = 0
-		lines = open(f).readlines()
-		f = os.path.basename(f)
-		if f in indexed_data['__countDoc__']:
-			countIndexed = countIndexed + 1
-			continue #Skip document already indexed
-			indexed_data['__countDoc__'].append(f)
-		countIngdexing = countIngdexing + 1
-		for line in lines:
-			for w in stokenize.stokenize_stop(line):
-				indexWordInDoc = indexWordInDoc + 1
-				if indexed_data.has_key(w):
+    countIndexed = 0
+    countIngdexing = 0
+    indexWordInDoc = 0
+    if '__countDoc__' not in indexed_data.keys():
+        indexed_data['__countDoc__'] = []
+    files = [os.path.join(collections,f) for f in os.listdir(collections)]
+    for f in files:
+        indexWordInDoc = 0
+        lines = open(f).readlines()
+        f = os.path.basename(f)
+        if f in indexed_data['__countDoc__']:
+            countIndexed = countIndexed + 1
+            continue #Skip document already indexed
+        indexed_data['__countDoc__'].append(f)
+        countIngdexing = countIngdexing + 1
+        for line in lines:
+            #for w in stokenize.stokenize_stop(line):
+            for w in line.split():
+                indexWordInDoc = indexWordInDoc + 1
+                if indexed_data.has_key(w):
                     #Count term w in document f
-					if not indexed_data[w].has_key(f):
-						indexed_data[w][f] = []
-					indexed_data[w][f].append(indexWordInDoc)
-				else:
-					#Create dict with key(f) for term w
-					indexed_data[w] = dict()
-					indexed_data[w][f] = []
-					indexed_data[w][f].append(indexWordInDoc)
-	print("\tSkip %d files already indexed, index %d new files"%(countIndexed,countIngdexing))
-	return indexed_data
+                    if not indexed_data[w].has_key(f):
+                        indexed_data[w][f] = []
+                    indexed_data[w][f].append(indexWordInDoc)
+                else:
+                    #Create dict with key(f) for term w
+                    indexed_data[w] = dict()
+                    indexed_data[w][f] = []
+                    indexed_data[w][f].append(indexWordInDoc)
+    print("\tSkip %d files already indexed, index %d new files"%(countIndexed,countIngdexing))
+    return indexed_data
 
 def rank_search(query,indexed_data):
     score = {}
@@ -164,6 +173,44 @@ def phrase_search(query, indexed_data):
                     if not (position + i) in indexed_data[query[i]][doc] :
                         break
                     result.add(doc)
+    else:
+        result = candidates
+    if len(result) != 0:
+        return result
+    else:
+        #For pretty printout
+        return set(["Not found"])
+
+def phrase_rank_search(query, indexed_data):
+    result = {}
+    candidates = set()
+    candidatesTemp = set()
+    for term in query:
+        if indexed_data.has_key(term):
+            if candidates is None or len(candidates) == 0:
+                for doc in indexed_data[term]:
+                    candidates.add(doc)
+            else:
+                candidatesTemp = set()
+                for doc in indexed_data[term]:
+                    candidatesTemp.add(doc)
+                candidates = candidates & candidatesTemp
+    if candidates is None or len(candidates) == 0:
+        #For pretty printout
+        return set(["Not found"])
+    if len(query) > 1:
+        for doc in candidates:
+            total_dis = 0
+            for i in range(0,len(query)-1):
+                min_dis = 999
+                for p1 in indexed_data[query[i]][doc]:
+                    for p2 in indexed_data[query[i+1]][doc]:
+                        distance = math.fabs(p1-p2)
+                        if min_dis > distance:
+                            min_dis = distance
+                total_dis = total_dis + min_dis
+            score = 1.0/total_dis
+            result[doc] = score
     else:
         result = candidates
     if len(result) != 0:

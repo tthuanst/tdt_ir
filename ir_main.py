@@ -45,8 +45,12 @@ def display_result(input,searchMode):
         docs = searching.rank_search(query,indexed_rank)
     elif searchMode == "phrase":
         docs = searching.phrase_search(query,indexed_position)
+    elif searchMode == "vsm":
+        docs = searching.vsm_search(query,indexed_rank)
+    elif searchMode == "distance":
+        docs = searching.phrase_rank_search(query,indexed_position)
     #Show corrected sentences which is used to search
-    result = "Result simple search for <b><i><font color=\"red\">"+" ".join(query)+"</font></i></b><br>"
+    result = "Result "+searchMode+" search for <b><i><font color=\"red\">"+" ".join(query)+"</font></i></b><br>"
     #Show time searching and number of document found
     if "Not found" not in docs:
         found = len(docs)
@@ -60,10 +64,10 @@ def display_result(input,searchMode):
         #TODO: hyperlink to local file cannot click to open
         #Copy link and paste to address bar of browswer to open
         if type(d) is tuple:
-            d = d[0]
+            d,w = d
         if os.path.exists(os.path.join(data_path,d)):
-            result = result + "<br><a href=\"file:///{0}/{1}\" target=\"_blank\">{1}</a><br>".format(data_path,d)
-            cmd = "/bin/egrep -m 3 -i "+str(pattern)+"\""+str(os.path.join(data_path,d))+"\""
+            result = result + "<br><a href=\"file:///{0}/{1}\" target=\"_blank\">{1}</a> (score:{2})<br>".format(data_path,d,w)
+            cmd = "/bin/egrep -m 100 -i "+str(pattern)+"\""+str(os.path.join(data_path,d))+"\""
             out = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
             out = out.replace('\n','<br>')
             for w in query:
@@ -85,6 +89,14 @@ def search_rank(input):
 def search_phrase(input):
     return display_result(input,"phrase")
 
+@app.route('/search_vsm/<input>')
+def search_vsm(input):
+    return display_result(input,"vsm")
+
+@app.route('/search_distance_phrase/<input>')
+def search_distance_phrase(input):
+    return display_result(input,"distance")
+
 @app.route('/search',methods = ['POST'])
 def search():
     if request.form['submit'] == "Simple search":
@@ -102,6 +114,16 @@ def search():
         text = request.form['input']
         print("Phrase search: %s"%text)
         return redirect(url_for('search_phrase',input = text))
+    if request.form['submit'] == "VSM search":
+        #Handle rank search button
+        text = request.form['input']
+        print("VSM search: %s"%text)
+        return redirect(url_for('search_vsm',input = text))
+    if request.form['submit'] == "Distance phrase search":
+        #Handle rank search button
+        text = request.form['input']
+        print("Distance phrase search: %s"%text)
+        return redirect(url_for('search_distance_phrase',input = text))
 
 @app.route('/')
 def index():
